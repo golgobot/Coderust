@@ -1,0 +1,6 @@
+cmake_minimum_required (VERSION 2.6)
+project (Tutorial)
+set(CMAKE_BUILD_TYPE Debug)
+add_executable(Tutorial main.cpp)
+set(CMAKE_CXX_STANDARD 14)
+include_directories ("include")
