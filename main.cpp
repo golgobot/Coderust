@@ -432,3 +432,29 @@ TEST_CASE("Segment string", "[segment string]") {
     REQUIRE(can_segment_string("applepieandcelerytheonlyotherthingilikeis", root) == true);
     REQUIRE(can_segment_string("desksandchairsss", root) == false);
 }
+
+void remove_duplicates(char* str){
+    int len = strlen(str);
+    unordered_set<char> s;
+    int write = 0;
+    for(int read = 0; read < len; read++) {
+        char c = str[read];
+        //not in the set
+        if(s.find(c) == s.end()) {
+            str[write] = c;
+            write++;
+            s.insert(c);
+        }
+    }
+    str[write] = '\0';
+}
+
+TEST_CASE("Remove doops", "[Remove doops]") {
+    char* s1 = new char[200];
+    strcpy(s1, "hello there how are you doing????");
+
+    remove_duplicates(s1);
+    string answer(s1);
+    REQUIRE(answer == "helo trwayuding?");
+
+}
