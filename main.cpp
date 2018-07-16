@@ -251,3 +251,46 @@ TEST_CASE("Find lwo/high index", "[rotate array]") {
     REQUIRE(high == 7);
 
 }
+
+//O(nlog(n))
+void move_zeros_to_left(vector<int>& A) {
+    std::sort(A.begin(), A.end(), [](const int a, const int b) {
+        if(a == 0) {
+            return true;
+        }
+        return false;
+    });
+}
+
+//O(n)
+void move_zeros_to_left_2(vector<int>& A) {
+    int read = A.size();
+    int write = read;
+    while(read >= 0) {
+        if(A[read] != 0) {
+            A[write] = A[read];
+            write--;
+        }
+        read--;
+    }
+    while(write >= 0) {
+        A[write] = 0;
+        write--;
+    }
+}
+
+TEST_CASE("Move zeros to the left", "[left zeros]") {
+    vector<int> v1 = { 1, 1, 0, 2, 0, 3, 5, 0, 8, 13};
+    vector<int> v2 = { 0, 0, 0, 1, 1, 2, 3, 5, 8, 13};
+    move_zeros_to_left(v1);
+    for (int i = 0; i < v1.size(); i++) {
+        REQUIRE(v1[i] == v2[i]);
+    }
+
+    v1 = { 1, 1, 0, 2, 0, 3, 5, 0, 8, 13};
+    move_zeros_to_left_2(v1);
+    for (int i = 0; i < v1.size(); i++) {
+        REQUIRE(v1[i] == v2[i]);
+    }
+
+}
