@@ -187,9 +187,7 @@ TEST_CASE("Search sorted rotated array", "[rotated array]") {
 void rotate_array(vector<int>& arr, int n) {
     int len = arr.size();
     n = n % len;
-    if (n < 0) {
-        n = n + len;
-    }
+    if (n < 0) { n = n + len; }
     std::reverse(arr.begin(), arr.end());
     std::reverse(arr.begin(), arr.begin() + n);
     std::reverse(arr.begin() + n, arr.end());
@@ -199,9 +197,57 @@ TEST_CASE("Rotate array", "[rotate array]") {
     vector<int> v1 = { 1, 2, 3, 4, 5 };
     vector<int> v2 = { 4, 5, 1, 2, 3 };
     rotate_array(v1, -3);
-    print_array(v1, v1.size());
-
     for (int i = 0; i < v1.size(); i++) {
         REQUIRE(v1[i] == v2[i]);
     }
+}
+
+int find_low_index(vector<int>& arr, int key) {
+    int low = 0;
+    int high = arr.size();
+    while(high >= low) {
+        int mid = low + ((high - low) >> 1);
+        if(arr[mid] >= key) {
+            high = mid - 1;
+        }
+        else {
+            low = mid + 1;
+        }
+    }
+    if(arr[low] == key) {
+        return low;
+    }
+    return -1;
+}
+
+int find_high_index(vector<int>& arr, int key) {
+    int low = 0;
+    int high = arr.size();
+    while(high >= low) {
+        int mid = low + ((high - low) >> 1);
+        if(arr[mid] <= key) {
+            low = mid + 1;
+        }
+        else {
+            high = mid - 1;
+        }
+    }
+    if(arr[high] == key) {
+        return high;
+    }
+    return -1;
+}
+
+TEST_CASE("Find lwo/high index", "[rotate array]") {
+    vector<int> array = { 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 6, 6 };
+    int low = find_low_index(array, 5);
+    int high = find_high_index(array, 5);
+    REQUIRE(low == 15);
+    REQUIRE(high == 17);
+
+    low = find_low_index(array, 2);
+    high = find_high_index(array, 2);
+    REQUIRE(low == 3);
+    REQUIRE(high == 7);
+
 }
