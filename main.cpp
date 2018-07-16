@@ -1,10 +1,15 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 #include <algorithm>
+#include <fstream>
 #include <iostream>
-#include <string.h>
+#include <memory>
+#include <stack>
 #include <stdio.h>
+#include <string.h>
+#include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 using namespace std;
 
@@ -300,7 +305,7 @@ void reverse_string(char* s, int len) {
 void reverse_sentence_words(char* sentence) {
     int len = strlen(sentence);
     reverse_string(sentence, len);
-    
+
     int begin = 0;
     for (int i = 0; i <= len; i++) {
         if (i == len || sentence[i] == ' ') {
@@ -323,4 +328,104 @@ TEST_CASE("Reverse sentence", "[reverse sentence]") {
     strcpy(b, "dog lazy the over jumped fox brown Quick");
     reverse_sentence_words(a);
     REQUIRE(strcmp(a, b) == 0);
+}
+
+struct AlphaNode {
+    AlphaNode() : letter('\0'), is_word(false) {}
+    char letter;
+    bool is_word;
+    std::shared_ptr<AlphaNode> parent;
+    unordered_map<char, std::shared_ptr<AlphaNode>> children;
+
+    std::string get_word() {
+        string ret;
+        ret.push_back(letter);
+        std::shared_ptr<AlphaNode> p = parent;
+        while (parent->letter != '\0') {
+            ret.push_back(parent->letter);
+            parent = parent->parent;
+        }
+        std::reverse(ret.begin(), ret.end());
+        return ret;
+    }
+};
+
+std::shared_ptr<AlphaNode> create_word_dict() {
+    std::ifstream infile("../wordlist.txt");
+    std::string line;
+    std::shared_ptr<AlphaNode> root = std::make_shared<AlphaNode>();
+    while (std::getline(infile, line)) {
+        const char* chars = line.c_str();
+        auto node = root;
+        for (int i = 0; i < line.size(); i++) {
+            char c = chars[i];
+            //if not found create an entry
+            if (node->children.find(c) == node->children.end()) {
+                //make a new one
+                auto temp_node = std::make_shared<AlphaNode>();
+                temp_node->letter = c;
+                temp_node->parent = node;
+                node->children[c] = temp_node;
+            }
+            //traverse to new node
+            node = node->children[c];
+            if (i == line.size() - 1) { node->is_word = true; }
+        }
+    }
+    return root;
+}
+
+struct StackPair {
+    StackPair(int index, std::shared_ptr<AlphaNode> node) : index(index), node(node) {}
+    int index;
+    std::shared_ptr<AlphaNode> node;
+};
+
+bool can_segment_string(string s, std::shared_ptr<AlphaNode> root) {
+    unsigned len = s.size();
+    std::stack<StackPair> stack;
+    int index = 0;
+    auto node = root;
+    while (index < s.size()) {
+        const char& c = s[index];
+        //if there is a child
+        if (node->children.find(c) != node->children.end()) {
+            node = node->children[c];
+            if (node->is_word) {
+                cout << "Found a word: " << node->get_word() << endl;
+                stack.push(StackPair(index, node));
+                //now go back to the root to find an other word
+                node = root;
+                if (index == s.size() - 1) {
+                    cout << "segmentable" << endl;
+                    return true;
+                }
+            }
+            index++;
+        }
+        //if there is no word from here
+        else {
+            if (stack.size() == 0) {
+                cout << "not segmentable" << endl;
+                return false;
+            }
+            else {
+                auto p = stack.top();
+                stack.pop();
+                index = p.index;
+                node = p.node;
+                cout << "popping: " << node->parent->letter << endl;
+            }
+        }
+    }
+
+    cout << "not segmentable exit" << endl;
+
+    return false;
+}
+
+TEST_CASE("Segment string", "[segment string]") {
+    string s = "applepie";
+    std::shared_ptr<AlphaNode> root = create_word_dict();
+    can_segment_string(s, root);
 }
