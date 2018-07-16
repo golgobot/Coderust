@@ -8,4 +8,6 @@ make
 ```
 
 ## Run
+```bash
 ./Tutorial
+```
