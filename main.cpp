@@ -185,8 +185,10 @@ TEST_CASE("Search sorted rotated array", "[rotated array]") {
 }
 
 void rotate_array(vector<int>& arr, int n) {
+    int len = arr.size();
+    n = n % len;
     if (n < 0) {
-        n = n % arr.size();
+        n = n + len;
     }
     std::reverse(arr.begin(), arr.end());
     std::reverse(arr.begin(), arr.begin() + n);
@@ -194,10 +196,11 @@ void rotate_array(vector<int>& arr, int n) {
 }
 
 TEST_CASE("Rotate array", "[rotate array]") {
-    vector<int> v1 = { 1, 2, 3, 4, 5, 6, 7, 8 };
-    vector<int> v2 = { 4, 5, 6, 7, 8, 1, 2, 3 };
+    vector<int> v1 = { 1, 2, 3, 4, 5 };
+    vector<int> v2 = { 4, 5, 1, 2, 3 };
+    rotate_array(v1, -3);
+    print_array(v1, v1.size());
 
-    rotate_array(v1, -11);
     for (int i = 0; i < v1.size(); i++) {
         REQUIRE(v1[i] == v2[i]);
     }
