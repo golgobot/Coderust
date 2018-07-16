@@ -84,7 +84,7 @@ TEST_CASE("Sum of two", "[sum of 2]") {
     REQUIRE(find_sum_of_two_2(v, 7) == true);
 }
 
-template<class T>
+template <class T>
 void print_array(T arr, int size) {
     for (int i = 0; i < size; i++) {
         cout << arr[i] << ' ';
@@ -137,19 +137,15 @@ int binary_search_rotated(vector<int>& arr, int key) {
         int left_val = arr[left];
         int right_val = arr[right];
         int mid_val = arr[mid];
-        
-        if(mid_val == key) {
-            return mid;
-        }
-        else if(left == right) {
+
+        if (mid_val == key) { return mid; }
+        else if (left == right) {
             return -1;
         }
         //if the right side is ordered
         if (mid_val <= right_val) {
             //if the key is in the ordered part
-            if(key <= right_val && key >= mid_val) {
-                left = mid + 1;
-            }
+            if (key <= right_val && key >= mid_val) { left = mid + 1; }
             //if the key is in the rotated part
             else {
                 right = mid - 1;
@@ -158,9 +154,7 @@ int binary_search_rotated(vector<int>& arr, int key) {
         //if the left side is ordered
         else {
             //if the key is in the ordered part
-            if(key >= left_val && key <= mid_val) {
-                right = mid - 1;
-            }
+            if (key >= left_val && key <= mid_val) { right = mid - 1; }
             //if the key is in the rotated part
             else {
                 left = mid + 1;
@@ -170,12 +164,9 @@ int binary_search_rotated(vector<int>& arr, int key) {
     return -1;
 }
 
-
-
-
 TEST_CASE("Search sorted rotated array", "[rotated array]") {
-    vector<int> v1 = {6, 7, 1, 2, 3, 4, 5};
-    vector<int> v2 = {4, 5, 6, 1, 2, 3};
+    vector<int> v1 = { 6, 7, 1, 2, 3, 4, 5 };
+    vector<int> v2 = { 4, 5, 6, 1, 2, 3 };
 
     REQUIRE(binary_search_rotated(v1, 6) == 0);
     REQUIRE(binary_search_rotated(v1, 7) == 1);
@@ -191,4 +182,23 @@ TEST_CASE("Search sorted rotated array", "[rotated array]") {
     REQUIRE(binary_search_rotated(v2, 1) == 3);
     REQUIRE(binary_search_rotated(v2, 2) == 4);
     REQUIRE(binary_search_rotated(v2, 3) == 5);
+}
+
+void rotate_array(vector<int>& arr, int n) {
+    if (n < 0) {
+        n = n % arr.size();
+    }
+    std::reverse(arr.begin(), arr.end());
+    std::reverse(arr.begin(), arr.begin() + n);
+    std::reverse(arr.begin() + n, arr.end());
+}
+
+TEST_CASE("Rotate array", "[rotate array]") {
+    vector<int> v1 = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    vector<int> v2 = { 4, 5, 6, 7, 8, 1, 2, 3 };
+
+    rotate_array(v1, -11);
+    for (int i = 0; i < v1.size(); i++) {
+        REQUIRE(v1[i] == v2[i]);
+    }
 }
