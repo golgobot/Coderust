@@ -289,6 +289,7 @@ TEST_CASE("Move zeros to the left", "[left zeros]") {
 void reverse_string(char* s, int len) {
     int end = len - 1;
     for (int begin = 0; begin < (len >> 1); begin++) {
+        //could use xor swap here, but whatever
         char temp = s[begin];
         s[begin] = s[end];
         s[end] = temp;
