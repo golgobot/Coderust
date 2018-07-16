@@ -61,9 +61,7 @@ bool find_sum_of_two_2(vector<int>& A, int val) {
     while (left != right) {
         int sum = A[left] + A[right];
         if (sum == val) { return true; }
-        if (sum < val) { 
-            left++; 
-        }
+        if (sum < val) { left++; }
         else {
             right--;
         }
@@ -86,23 +84,22 @@ TEST_CASE("Sum of two", "[sum of 2]") {
     REQUIRE(find_sum_of_two_2(v, 7) == true);
 }
 
-void print_array(int* arr, int size) {
-    for(int i = 0; i < size; i++) {
+template<class T>
+void print_array(T arr, int size) {
+    for (int i = 0; i < size; i++) {
         cout << arr[i] << ' ';
     }
     cout << endl;
 }
 
 void quick_sort(int* arr, int size) {
-    if(size <= 1) {
-        return;
-    }
+    if (size <= 1) { return; }
     int index = 0;
     int right = size - 1;
     int pivot = arr[index];
-    while(index != right) {
+    while (index != right) {
         int e = arr[index + 1];
-        if(e <= pivot) {
+        if (e <= pivot) {
             //swap
             arr[index + 1] = pivot;
             arr[index] = e;
@@ -123,11 +120,75 @@ void quick_sort(int* arr, int size) {
 }
 
 TEST_CASE("Quick sort", "[quick sort]") {
-    int a[] = {0, 33, 6, 21, 12, 19, 29, 38, 22, 14, 40, 0, 0, 0, 0, 0};
-    vector<int> v = {0, 33, 6, 21, 12, 19, 29, 38, 22, 14, 40, 0, 0, 0, 0, 0};
+    int a[] = { 0, 33, 6, 21, 12, 19, 29, 38, 22, 14, 40, 0, 0, 0, 0, 0 };
+    vector<int> v = { 0, 33, 6, 21, 12, 19, 29, 38, 22, 14, 40, 0, 0, 0, 0, 0 };
     std::sort(v.begin(), v.end());
-    quick_sort(a, sizeof(a)/sizeof(int));
-    for(int i = 0; i < v.size(); i++) {
+    quick_sort(a, sizeof(a) / sizeof(int));
+    for (int i = 0; i < v.size(); i++) {
         REQUIRE(v[i] == a[i]);
     }
+}
+
+int binary_search_rotated(vector<int>& arr, int key) {
+    int left = 0;
+    int right = arr.size() - 1;
+    while (left <= right) {
+        int mid = left + ((right - left) >> 1);
+        int left_val = arr[left];
+        int right_val = arr[right];
+        int mid_val = arr[mid];
+        
+        if(mid_val == key) {
+            return mid;
+        }
+        else if(left == right) {
+            return -1;
+        }
+        //if the right side is ordered
+        if (mid_val <= right_val) {
+            //if the key is in the ordered part
+            if(key <= right_val && key >= mid_val) {
+                left = mid + 1;
+            }
+            //if the key is in the rotated part
+            else {
+                right = mid - 1;
+            }
+        }
+        //if the left side is ordered
+        else {
+            //if the key is in the ordered part
+            if(key >= left_val && key <= mid_val) {
+                right = mid - 1;
+            }
+            //if the key is in the rotated part
+            else {
+                left = mid + 1;
+            }
+        }
+    }
+    return -1;
+}
+
+
+
+
+TEST_CASE("Search sorted rotated array", "[rotated array]") {
+    vector<int> v1 = {6, 7, 1, 2, 3, 4, 5};
+    vector<int> v2 = {4, 5, 6, 1, 2, 3};
+
+    REQUIRE(binary_search_rotated(v1, 6) == 0);
+    REQUIRE(binary_search_rotated(v1, 7) == 1);
+    REQUIRE(binary_search_rotated(v1, 1) == 2);
+    REQUIRE(binary_search_rotated(v1, 2) == 3);
+    REQUIRE(binary_search_rotated(v1, 3) == 4);
+    REQUIRE(binary_search_rotated(v1, 4) == 5);
+    REQUIRE(binary_search_rotated(v1, 5) == 6);
+
+    REQUIRE(binary_search_rotated(v2, 4) == 0);
+    REQUIRE(binary_search_rotated(v2, 5) == 1);
+    REQUIRE(binary_search_rotated(v2, 6) == 2);
+    REQUIRE(binary_search_rotated(v2, 1) == 3);
+    REQUIRE(binary_search_rotated(v2, 2) == 4);
+    REQUIRE(binary_search_rotated(v2, 3) == 5);
 }
