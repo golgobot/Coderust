@@ -2,7 +2,10 @@
 #include "catch.hpp"
 #include <algorithm>
 #include <iostream>
+#include <string.h>
+#include <stdio.h>
 #include <unordered_set>
+
 using namespace std;
 
 // A is sorted array
@@ -205,36 +208,28 @@ TEST_CASE("Rotate array", "[rotate array]") {
 int find_low_index(vector<int>& arr, int key) {
     int low = 0;
     int high = arr.size();
-    while(high >= low) {
+    while (high >= low) {
         int mid = low + ((high - low) >> 1);
-        if(arr[mid] >= key) {
-            high = mid - 1;
-        }
+        if (arr[mid] >= key) { high = mid - 1; }
         else {
             low = mid + 1;
         }
     }
-    if(arr[low] == key) {
-        return low;
-    }
+    if (arr[low] == key) { return low; }
     return -1;
 }
 
 int find_high_index(vector<int>& arr, int key) {
     int low = 0;
     int high = arr.size();
-    while(high >= low) {
+    while (high >= low) {
         int mid = low + ((high - low) >> 1);
-        if(arr[mid] <= key) {
-            low = mid + 1;
-        }
+        if (arr[mid] <= key) { low = mid + 1; }
         else {
             high = mid - 1;
         }
     }
-    if(arr[high] == key) {
-        return high;
-    }
+    if (arr[high] == key) { return high; }
     return -1;
 }
 
@@ -249,15 +244,12 @@ TEST_CASE("Find lwo/high index", "[rotate array]") {
     high = find_high_index(array, 2);
     REQUIRE(low == 3);
     REQUIRE(high == 7);
-
 }
 
 //O(nlog(n))
 void move_zeros_to_left(vector<int>& A) {
     std::sort(A.begin(), A.end(), [](const int a, const int b) {
-        if(a == 0) {
-            return true;
-        }
+        if (a == 0) { return true; }
         return false;
     });
 }
@@ -266,31 +258,68 @@ void move_zeros_to_left(vector<int>& A) {
 void move_zeros_to_left_2(vector<int>& A) {
     int read = A.size();
     int write = read;
-    while(read >= 0) {
-        if(A[read] != 0) {
+    while (read >= 0) {
+        if (A[read] != 0) {
             A[write] = A[read];
             write--;
         }
         read--;
     }
-    while(write >= 0) {
+    while (write >= 0) {
         A[write] = 0;
         write--;
     }
 }
 
 TEST_CASE("Move zeros to the left", "[left zeros]") {
-    vector<int> v1 = { 1, 1, 0, 2, 0, 3, 5, 0, 8, 13};
-    vector<int> v2 = { 0, 0, 0, 1, 1, 2, 3, 5, 8, 13};
+    vector<int> v1 = { 1, 1, 0, 2, 0, 3, 5, 0, 8, 13 };
+    vector<int> v2 = { 0, 0, 0, 1, 1, 2, 3, 5, 8, 13 };
     move_zeros_to_left(v1);
     for (int i = 0; i < v1.size(); i++) {
         REQUIRE(v1[i] == v2[i]);
     }
 
-    v1 = { 1, 1, 0, 2, 0, 3, 5, 0, 8, 13};
+    v1 = { 1, 1, 0, 2, 0, 3, 5, 0, 8, 13 };
     move_zeros_to_left_2(v1);
     for (int i = 0; i < v1.size(); i++) {
         REQUIRE(v1[i] == v2[i]);
     }
+}
 
+void reverse_string(char* s, int len) {
+    int end = len - 1;
+    for (int begin = 0; begin < (len >> 1); begin++) {
+        char temp = s[begin];
+        s[begin] = s[end];
+        s[end] = temp;
+        end--;
+    }
+}
+
+void reverse_sentence_words(char* sentence) {
+    int len = strlen(sentence);
+    reverse_string(sentence, len);
+    
+    int begin = 0;
+    for (int i = 0; i <= len; i++) {
+        if (i == len || sentence[i] == ' ') {
+            reverse_string(sentence + begin, i - begin);
+            begin = i + 1;
+        }
+    }
+}
+
+TEST_CASE("Reverse sentence", "[reverse sentence]") {
+    char* a = new char[200];
+    char* b = new char[200];
+
+    strcpy(a, "ab cd");
+    strcpy(b, "cd ab");
+    reverse_sentence_words(a);
+    REQUIRE(strcmp(a, b) == 0);
+
+    strcpy(a, "Quick brown fox jumped over the lazy dog");
+    strcpy(b, "dog lazy the over jumped fox brown Quick");
+    reverse_sentence_words(a);
+    REQUIRE(strcmp(a, b) == 0);
 }
