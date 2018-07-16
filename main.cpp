@@ -567,3 +567,61 @@ TEST_CASE("Xml parsing", "[xml]") {
     REQUIRE(root->node_name == "xml");
     REQUIRE(root->children[0]->node_name == "data");
 }
+
+class BinaryTreeNode {
+public:
+    BinaryTreeNode(int data, BinaryTreeNode* left, BinaryTreeNode* right)
+        : data(data), left(left), right(right) {}
+    BinaryTreeNode(int data) : data(data), left(0), right(0) {}
+    int data;
+    BinaryTreeNode* right;
+    BinaryTreeNode* left;
+};
+
+class InorderIterator {
+    //TODO: Write - Your - Code
+public:
+    // When iterator is initialized it is always
+    // at the first element of tree in its in-order
+    InorderIterator(BinaryTreeNode* root) : root(root) {
+        BinaryTreeNode* node = root;
+        while (node) {
+            s.push(node);
+            node = node->left;
+        }
+    }
+
+    bool hasNext() { return s.size() > 0; }
+
+    // getNext returns null if there are no more elements in tree
+    BinaryTreeNode* getNext() {
+        BinaryTreeNode* ret = s.top();
+        s.pop();
+        if (ret->right) {
+            BinaryTreeNode* node = ret->right;
+            s.push(node);
+            while (node->left) {
+                node = node->left;
+                s.push(node);
+            }
+        }
+        return ret;
+    }
+
+private:
+    BinaryTreeNode* root;
+    stack<BinaryTreeNode*> s;
+};
+
+TEST_CASE("In order iterator", "[bt-iterator]") {
+    BinaryTreeNode* root = new BinaryTreeNode(100,
+        new BinaryTreeNode(50, new BinaryTreeNode(25, new BinaryTreeNode(12), new BinaryTreeNode(35)),
+            new BinaryTreeNode(75, new BinaryTreeNode(60), nullptr)),
+        new BinaryTreeNode(200, new BinaryTreeNode(125), new BinaryTreeNode(300)));
+    InorderIterator it(root);
+    vector<int> v = {12, 25, 35, 50, 60, 75, 100, 125, 200, 300};
+    int i = 0;
+    while (it.hasNext()) {
+        REQUIRE(it.getNext()->data == v[i++]);
+    }
+}
