@@ -331,29 +331,29 @@ TEST_CASE("Reverse sentence", "[reverse sentence]") {
 }
 
 struct AlphaNode {
-    AlphaNode() : letter('\0'), is_word(false) {}
+    AlphaNode() : letter('\0'), is_word(false), parent(0) {}
     char letter;
     bool is_word;
-    std::shared_ptr<AlphaNode> parent;
-    unordered_map<char, std::shared_ptr<AlphaNode>> children;
+    AlphaNode* parent;
+    unordered_map<char, AlphaNode*> children;
 
     std::string get_word() {
         string ret;
         ret.push_back(letter);
-        std::shared_ptr<AlphaNode> p = parent;
-        while (parent->letter != '\0') {
-            ret.push_back(parent->letter);
-            parent = parent->parent;
+        AlphaNode* p = parent;
+        while (p) {
+            ret.push_back(p->letter);
+            p = p->parent;
         }
         std::reverse(ret.begin(), ret.end());
         return ret;
     }
 };
 
-std::shared_ptr<AlphaNode> create_word_dict() {
+AlphaNode* create_word_dict() {
     std::ifstream infile("../wordlist.txt");
     std::string line;
-    std::shared_ptr<AlphaNode> root = std::make_shared<AlphaNode>();
+    AlphaNode* root = new AlphaNode();
     while (std::getline(infile, line)) {
         const char* chars = line.c_str();
         auto node = root;
@@ -362,7 +362,7 @@ std::shared_ptr<AlphaNode> create_word_dict() {
             //if not found create an entry
             if (node->children.find(c) == node->children.end()) {
                 //make a new one
-                auto temp_node = std::make_shared<AlphaNode>();
+                auto temp_node = new AlphaNode();
                 temp_node->letter = c;
                 temp_node->parent = node;
                 node->children[c] = temp_node;
@@ -376,12 +376,12 @@ std::shared_ptr<AlphaNode> create_word_dict() {
 }
 
 struct StackPair {
-    StackPair(int index, std::shared_ptr<AlphaNode> node) : index(index), node(node) {}
+    StackPair(int index, AlphaNode* node) : index(index), node(node) {}
     int index;
-    std::shared_ptr<AlphaNode> node;
+    AlphaNode* node;
 };
 
-bool can_segment_string(string s, std::shared_ptr<AlphaNode> root) {
+bool can_segment_string(string s, AlphaNode* root) {
     unsigned len = s.size();
     std::stack<StackPair> stack;
     int index = 0;
@@ -391,22 +391,29 @@ bool can_segment_string(string s, std::shared_ptr<AlphaNode> root) {
         //if there is a child
         if (node->children.find(c) != node->children.end()) {
             node = node->children[c];
+
             if (node->is_word) {
-                cout << "Found a word: " << node->get_word() << endl;
-                stack.push(StackPair(index, node));
+                //save this location
+                stack.push(StackPair(index + 1, node));
                 //now go back to the root to find an other word
                 node = root;
                 if (index == s.size() - 1) {
-                    cout << "segmentable" << endl;
                     return true;
                 }
             }
             index++;
+
+            //if the node is not a word and we're at the end
+            if(index == s.size()) {
+                auto p = stack.top();
+                stack.pop();
+                index = p.index;
+                node = p.node;
+            }
         }
         //if there is no word from here
         else {
             if (stack.size() == 0) {
-                cout << "not segmentable" << endl;
                 return false;
             }
             else {
@@ -414,18 +421,14 @@ bool can_segment_string(string s, std::shared_ptr<AlphaNode> root) {
                 stack.pop();
                 index = p.index;
                 node = p.node;
-                cout << "popping: " << node->parent->letter << endl;
             }
         }
     }
-
-    cout << "not segmentable exit" << endl;
-
     return false;
 }
 
 TEST_CASE("Segment string", "[segment string]") {
-    string s = "applepie";
-    std::shared_ptr<AlphaNode> root = create_word_dict();
-    can_segment_string(s, root);
+    AlphaNode* root = create_word_dict();
+    REQUIRE(can_segment_string("applepieandcelerytheonlyotherthingilikeis", root) == true);
+    REQUIRE(can_segment_string("desksandchairsss", root) == false);
 }
