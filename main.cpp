@@ -397,14 +397,12 @@ bool can_segment_string(string s, AlphaNode* root) {
                 stack.push(StackPair(index + 1, node));
                 //now go back to the root to find an other word
                 node = root;
-                if (index == s.size() - 1) {
-                    return true;
-                }
+                if (index == s.size() - 1) { return true; }
             }
             index++;
 
             //if the node is not a word and we're at the end
-            if(index == s.size()) {
+            if (index == s.size()) {
                 auto p = stack.top();
                 stack.pop();
                 index = p.index;
@@ -413,9 +411,7 @@ bool can_segment_string(string s, AlphaNode* root) {
         }
         //if there is no word from here
         else {
-            if (stack.size() == 0) {
-                return false;
-            }
+            if (stack.size() == 0) { return false; }
             else {
                 auto p = stack.top();
                 stack.pop();
@@ -433,14 +429,14 @@ TEST_CASE("Segment string", "[segment string]") {
     REQUIRE(can_segment_string("desksandchairsss", root) == false);
 }
 
-void remove_duplicates(char* str){
+void remove_duplicates(char* str) {
     int len = strlen(str);
     unordered_set<char> s;
     int write = 0;
-    for(int read = 0; read < len; read++) {
+    for (int read = 0; read < len; read++) {
         char c = str[read];
         //not in the set
-        if(s.find(c) == s.end()) {
+        if (s.find(c) == s.end()) {
             str[write] = c;
             write++;
             s.insert(c);
@@ -456,5 +452,118 @@ TEST_CASE("Remove doops", "[Remove doops]") {
     remove_duplicates(s1);
     string answer(s1);
     REQUIRE(answer == "helo trwayuding?");
+}
 
+// trim from start
+static inline std::string& ltrim(std::string& s) {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+    return s;
+}
+
+// trim from end
+static inline std::string& rtrim(std::string& s) {
+    s.erase(
+        std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+    return s;
+}
+
+// trim from both ends
+static inline std::string& trim(std::string& s) { return ltrim(rtrim(s)); }
+
+struct Node {
+    string node_name;
+    vector<Node*> children;
+    Node(string name) : node_name(name), children() {}
+};
+
+struct XmlElement {
+public:
+    enum Type { OPENING, CLOSING, TEXT };
+    Type type;
+    string content;
+};
+
+class XmlTokenizer {
+public:
+    XmlTokenizer(const string& xml) : xml(xml), pos(0) {}
+    bool get_next_element(XmlElement& element) {
+        std::size_t i = xml.find('<', pos);
+        if (i == std::string::npos) { return false; }
+        string temp = xml.substr(pos, i - pos);
+        trim(temp);
+        if (!temp.empty()) {
+            element.type = XmlElement::TEXT;
+            element.content = temp;
+            pos = i;
+            return true;
+        }
+        pos = i + 1;
+        std::size_t j = xml.find('>', pos);
+        if (xml[pos] == '/') {
+            element.type = XmlElement::CLOSING;
+            pos++;
+        }
+        else {
+            element.type = XmlElement::OPENING;
+        }
+        temp = xml.substr(pos, j - pos);
+        trim(temp);
+        element.content = temp;
+        pos = j + 1;
+        return true;
+    }
+
+private:
+    void trim(string& s) {}
+    const string& xml;
+    unsigned pos;
+};
+
+Node* create_xml_tree(const string& xml) {
+    stack<Node*> s;
+    Node* root = nullptr;
+    XmlElement element;
+    XmlTokenizer tokenizer(xml);
+    if (tokenizer.get_next_element(element)) {
+        if (element.type == XmlElement::OPENING) {
+            root = new Node(element.content);
+            s.push(root);
+        }
+    }
+
+    while (tokenizer.get_next_element(element)) {
+        if (element.type == XmlElement::TEXT) { s.top()->children.push_back(new Node(element.content)); }
+        else if (element.type == XmlElement::OPENING) {
+            Node* temp = new Node(element.content);
+            s.top()->children.push_back(temp);
+            s.push(temp);
+        }
+        else {
+            s.pop();
+        }
+    }
+
+    //TODO: Write - Your - Code
+    return root;
+}
+
+void print_tree(Node* root, int depth) {
+    if (root == nullptr) { return; }
+
+    for (int i = 0; i < depth; ++i)
+        cout << "\t";
+    cout << root->node_name << endl;
+    for (Node* child : root->children) {
+        print_tree(child, depth + 1);
+    }
+}
+
+TEST_CASE("Xml parsing", "[xml]") {
+    // string xml = "<xml><data>hello world     </data>    <a><b></b><b><c></c></b></a></xml>";
+    // string xml = "<html><body><div><h1>CodeRust</h1><a>http://coderust.com</a></div><div><h2>Chapter1</h2></"
+    //              "div><div><h3>Chapter2</h3><img src=\"foo.jpg\"/><h4>Chapter2.1</h4></div></body></html>";
+    string xml = "<xml><data>hello world</data><a><b></b><b><c></c></b></a></xml>";
+    Node* root = create_xml_tree(xml);
+    REQUIRE(root->node_name == "xml");
+    REQUIRE(root->children[0]->node_name == "data");
 }
