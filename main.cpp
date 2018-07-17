@@ -696,6 +696,28 @@ void level_order_traversal(BinaryTreeNode* root) {
     }
 }
 
+void level_order_traversal_2(BinaryTreeNode* root) {
+    queue<BinaryTreeNode*> current;
+    current.push(root);
+    current.push(nullptr);
+    BinaryTreeNode* node;
+    while (!current.empty()) {
+        node = current.front();
+        current.pop();
+        if (node == nullptr) {
+            if (!current.empty()) {
+                // cout << endl;
+                current.push(nullptr);
+            }
+            continue;
+        }
+        // cout << node->data << " ";
+        //add children
+        if (node->left) { current.push(node->left); }
+        if (node->right) { current.push(node->right); }
+    }
+}
+
 TEST_CASE("Breadth first traversal", "[traversal]") {
     BinaryTreeNode* root = new BinaryTreeNode(100,
         new BinaryTreeNode(50, new BinaryTreeNode(25, new BinaryTreeNode(12), new BinaryTreeNode(35)),
@@ -703,4 +725,5 @@ TEST_CASE("Breadth first traversal", "[traversal]") {
         new BinaryTreeNode(200, new BinaryTreeNode(125), new BinaryTreeNode(300)));
 
     level_order_traversal(root);
+    level_order_traversal_2(root);
 }
