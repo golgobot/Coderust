@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <queue>
 #include <stack>
 #include <stdio.h>
 #include <string.h>
@@ -649,9 +650,7 @@ BinaryTreeNode* inorder_successor_bst(BinaryTreeNode* root, int d) {
         while (!s.empty()) {
             node = s.top();
             s.pop();
-            if (node->data >= d) {
-                return node;
-            }
+            if (node->data >= d) { return node; }
         }
     }
 
@@ -674,4 +673,34 @@ TEST_CASE("In order successor", "[bt-iterator]") {
     REQUIRE(inorder_successor_bst(root, 125)->data == 200);
     REQUIRE(inorder_successor_bst(root, 200)->data == 300);
     REQUIRE(inorder_successor_bst(root, 300) == nullptr);
+}
+
+void level_order_traversal(BinaryTreeNode* root) {
+    queue<BinaryTreeNode*> q1;
+    queue<BinaryTreeNode*> q2;
+    queue<BinaryTreeNode*>* current = &q1;
+    queue<BinaryTreeNode*>* next = &q2;
+
+    current->push(root);
+    BinaryTreeNode* node;
+    while (!current->empty() || !next->empty()) {
+        while (!current->empty()) {
+            node = current->front();
+            current->pop();
+            if (node->left) { next->push(node->left); }
+            if (node->right) { next->push(node->right); }
+        }
+        auto temp = current;
+        current = next;
+        next = temp;
+    }
+}
+
+TEST_CASE("Breadth first traversal", "[traversal]") {
+    BinaryTreeNode* root = new BinaryTreeNode(100,
+        new BinaryTreeNode(50, new BinaryTreeNode(25, new BinaryTreeNode(12), new BinaryTreeNode(35)),
+            new BinaryTreeNode(75, new BinaryTreeNode(60), nullptr)),
+        new BinaryTreeNode(200, new BinaryTreeNode(125), new BinaryTreeNode(300)));
+
+    level_order_traversal(root);
 }
