@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <queue>
 #include <stack>
@@ -726,4 +727,99 @@ TEST_CASE("Breadth first traversal", "[traversal]") {
 
     level_order_traversal(root);
     level_order_traversal_2(root);
+}
+
+std::pair<int, int> get_is_bst(BinaryTreeNode* node, bool& is_bst) {
+    auto limits = std::make_pair<int, int>(numeric_limits<int>::max(), numeric_limits<int>::min());
+
+    if (!is_bst) { return limits; }
+    if (!node->left && !node->right) { return std::make_pair(node->data, node->data); }
+    if (node->left) {
+        auto left_limits = get_is_bst(node->left, is_bst);
+        if (left_limits.second > node->data) {
+            is_bst = false;
+            return limits;
+        }
+        limits.first = std::min(left_limits.first, limits.first);
+        limits.second = std::max(left_limits.second, limits.second);
+    }
+    if (node->right) {
+        auto right_limits = get_is_bst(node->right, is_bst);
+        if (right_limits.first < node->data) {
+            is_bst = false;
+            return limits;
+        }
+        limits.first = std::min(right_limits.first, limits.first);
+        limits.second = std::max(right_limits.second, limits.second);
+    }
+    return limits;
+}
+
+bool is_bst(BinaryTreeNode* root) {
+    bool ret = true;
+    get_is_bst(root, ret);
+    return ret;
+}
+
+//use in order traversal
+bool is_bst_2(BinaryTreeNode* root) {
+    stack<BinaryTreeNode*> s;
+    BinaryTreeNode* node = root;
+    while(node) {
+        s.push(node);
+        node = node->left;
+    }
+    BinaryTreeNode* prev = nullptr;
+    while(!s.empty()) {
+        node = s.top();
+        s.pop();
+        if(prev && prev->data > node->data) {
+            return false;
+        }
+        prev = node;
+        if(node->right) {
+            node = node->right;
+            while(node) {
+                s.push(node);
+                node = node->left;
+            }
+        }
+    }
+    return true;
+}
+
+TEST_CASE("Is BST", "[traversal]") {
+    BinaryTreeNode* n1 = new BinaryTreeNode(100,
+        new BinaryTreeNode(50, new BinaryTreeNode(25, new BinaryTreeNode(12), new BinaryTreeNode(35)),
+            new BinaryTreeNode(75, new BinaryTreeNode(60), nullptr)),
+        new BinaryTreeNode(200, new BinaryTreeNode(125), new BinaryTreeNode(300)));
+
+    BinaryTreeNode* n2 = new BinaryTreeNode(100,
+        new BinaryTreeNode(120, new BinaryTreeNode(25, new BinaryTreeNode(12), new BinaryTreeNode(35)),
+            new BinaryTreeNode(75, new BinaryTreeNode(60), nullptr)),
+        new BinaryTreeNode(200, new BinaryTreeNode(125), new BinaryTreeNode(300)));
+
+    BinaryTreeNode* n3 = new BinaryTreeNode(100);
+    BinaryTreeNode* n4 = 
+        new BinaryTreeNode(100,
+            new BinaryTreeNode(50, 
+                new BinaryTreeNode(25, 
+                    new BinaryTreeNode(12), 
+                    new BinaryTreeNode(35)),
+                new BinaryTreeNode(75, 
+                    new BinaryTreeNode(60), 
+                    nullptr)),
+            new BinaryTreeNode(200, 
+                new BinaryTreeNode(201), 
+                new BinaryTreeNode(300)));
+
+    REQUIRE(is_bst(n1));
+    REQUIRE(!is_bst(n2));
+    REQUIRE(is_bst(n3));
+    REQUIRE(!is_bst(n4));
+
+    REQUIRE(is_bst_2(n1));
+    REQUIRE(!is_bst_2(n2));
+    REQUIRE(is_bst_2(n3));
+    REQUIRE(!is_bst_2(n4));
 }
