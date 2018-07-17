@@ -619,9 +619,59 @@ TEST_CASE("In order iterator", "[bt-iterator]") {
             new BinaryTreeNode(75, new BinaryTreeNode(60), nullptr)),
         new BinaryTreeNode(200, new BinaryTreeNode(125), new BinaryTreeNode(300)));
     InorderIterator it(root);
-    vector<int> v = {12, 25, 35, 50, 60, 75, 100, 125, 200, 300};
+    vector<int> v = { 12, 25, 35, 50, 60, 75, 100, 125, 200, 300 };
     int i = 0;
     while (it.hasNext()) {
         REQUIRE(it.getNext()->data == v[i++]);
     }
+}
+
+BinaryTreeNode* inorder_successor_bst(BinaryTreeNode* root, int d) {
+    BinaryTreeNode* node = root;
+    stack<BinaryTreeNode*> s;
+
+    while (node) {
+        if (node->data == d) { break; }
+        s.push(node);
+        if (node->data > d) { node = node->left; }
+        else {
+            node = node->right;
+        }
+    }
+    if (node) {
+        if (node->right) {
+            node = node->right;
+            while (node->left) {
+                node = node->left;
+            }
+            return node;
+        }
+        while (!s.empty()) {
+            node = s.top();
+            s.pop();
+            if (node->data >= d) {
+                return node;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+TEST_CASE("In order successor", "[bt-iterator]") {
+    BinaryTreeNode* root = new BinaryTreeNode(100,
+        new BinaryTreeNode(50, new BinaryTreeNode(25, new BinaryTreeNode(12), new BinaryTreeNode(35)),
+            new BinaryTreeNode(75, new BinaryTreeNode(60), nullptr)),
+        new BinaryTreeNode(200, new BinaryTreeNode(125), new BinaryTreeNode(300)));
+
+    REQUIRE(inorder_successor_bst(root, 12)->data == 25);
+    REQUIRE(inorder_successor_bst(root, 25)->data == 35);
+    REQUIRE(inorder_successor_bst(root, 35)->data == 50);
+    REQUIRE(inorder_successor_bst(root, 50)->data == 60);
+    REQUIRE(inorder_successor_bst(root, 60)->data == 75);
+    REQUIRE(inorder_successor_bst(root, 75)->data == 100);
+    REQUIRE(inorder_successor_bst(root, 100)->data == 125);
+    REQUIRE(inorder_successor_bst(root, 125)->data == 200);
+    REQUIRE(inorder_successor_bst(root, 200)->data == 300);
+    REQUIRE(inorder_successor_bst(root, 300) == nullptr);
 }
