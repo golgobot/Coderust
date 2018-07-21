@@ -762,24 +762,24 @@ bool is_bst(BinaryTreeNode* root) {
 }
 
 //use in order traversal
+//use stack. push all left nodes. if one has a right node
+//use push all right nodes left nodes.
 bool is_bst_2(BinaryTreeNode* root) {
     stack<BinaryTreeNode*> s;
     BinaryTreeNode* node = root;
-    while(node) {
+    while (node) {
         s.push(node);
         node = node->left;
     }
     BinaryTreeNode* prev = nullptr;
-    while(!s.empty()) {
+    while (!s.empty()) {
         node = s.top();
         s.pop();
-        if(prev && prev->data > node->data) {
-            return false;
-        }
+        if (prev && prev->data > node->data) { return false; }
         prev = node;
-        if(node->right) {
+        if (node->right) {
             node = node->right;
-            while(node) {
+            while (node) {
                 s.push(node);
                 node = node->left;
             }
@@ -800,18 +800,10 @@ TEST_CASE("Is BST", "[traversal]") {
         new BinaryTreeNode(200, new BinaryTreeNode(125), new BinaryTreeNode(300)));
 
     BinaryTreeNode* n3 = new BinaryTreeNode(100);
-    BinaryTreeNode* n4 = 
-        new BinaryTreeNode(100,
-            new BinaryTreeNode(50, 
-                new BinaryTreeNode(25, 
-                    new BinaryTreeNode(12), 
-                    new BinaryTreeNode(35)),
-                new BinaryTreeNode(75, 
-                    new BinaryTreeNode(60), 
-                    nullptr)),
-            new BinaryTreeNode(200, 
-                new BinaryTreeNode(201), 
-                new BinaryTreeNode(300)));
+    BinaryTreeNode* n4 = new BinaryTreeNode(100,
+        new BinaryTreeNode(50, new BinaryTreeNode(25, new BinaryTreeNode(12), new BinaryTreeNode(35)),
+            new BinaryTreeNode(75, new BinaryTreeNode(60), nullptr)),
+        new BinaryTreeNode(200, new BinaryTreeNode(201), new BinaryTreeNode(300)));
 
     REQUIRE(is_bst(n1));
     REQUIRE(!is_bst(n2));
@@ -822,4 +814,53 @@ TEST_CASE("Is BST", "[traversal]") {
     REQUIRE(!is_bst_2(n2));
     REQUIRE(is_bst_2(n3));
     REQUIRE(!is_bst_2(n4));
+}
+
+class vertex {
+public:
+    vertex(int id, bool visited) : _id(id), _visited(visited) {}
+    int getId() { return _id; }
+    bool isVisited() { return _visited; }
+
+private:
+    int _id;
+    int _visited;
+};
+
+class edge {
+public:
+    edge(int weight, bool visited, vertex* src, vertex* dest)
+        : _weight(weight), _visited(visited), _src(src), _dest(dest) {}
+    vertex* getSrc() { return _src; }
+    vertex* getDest() { return _dest; }
+    int getWeight() { return _weight; }
+    bool isVisited() { return _visited; }
+
+private:
+    int _weight;
+    int _visited;
+    vertex* _src;
+    vertex* _dest;
+};
+
+int find_max_sum_sub_array(int A[], int length) {
+    if (length < 1) { return 0; }
+    int current_max = A[0];
+    int global_max = A[0];
+    for (int i = 1; i < length; i++) {
+        if (current_max < 0) { current_max = A[i]; }
+        else {
+            current_max += A[i];
+        }
+        if (global_max < current_max) { global_max = current_max; }
+    }
+    return global_max;
+}
+
+TEST_CASE("Max sum in subarray", "") {
+    int v[] = { 1, 10, -1, 11, 5, -30, -7, 20, 25, -35 };
+    REQUIRE(find_max_sum_sub_array(v, sizeof(v) / sizeof(v[0])) == 45);
+
+    int v1[] = { -15, -14, -10, -19, -5, -21, -10 };
+    REQUIRE(find_max_sum_sub_array(v1, sizeof(v1) / sizeof(v1[0])) == -5);
 }
