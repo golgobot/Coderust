@@ -864,3 +864,130 @@ TEST_CASE("Max sum in subarray", "") {
     int v1[] = { -15, -14, -10, -19, -5, -21, -10 };
     REQUIRE(find_max_sum_sub_array(v1, sizeof(v1) / sizeof(v1[0])) == -5);
 }
+
+class ListNode {
+public:
+    ListNode(int k, int v): key(k), value(v), prev(0), next(0) {}
+    int key;
+    int value;
+    ListNode* prev;
+    ListNode* next;
+
+    ListNode* remove() {
+        if(prev) {
+            prev->next = next;
+        }
+        if(next) {
+            next->prev = prev;
+        }
+        next = nullptr;
+        prev = nullptr;
+        return this;
+    }
+
+    ListNode* insert_before(ListNode* node) {
+        this->prev = node->prev;
+        this->next = node;
+        this->prev->next = this;
+        this->next->prev = this;
+        return this;
+    }
+
+    ListNode* insert_after(ListNode* node) {
+        this->prev = node;
+        this->next = node->next;
+        this->prev->next = this;
+        this->next->prev = this;
+        return this;
+    }
+};
+
+// simple single threaded LRUCache
+class LRUCache {
+public:
+    LRUCache(int capacity) { 
+        this->capacity = capacity; 
+        head = new ListNode(0, 0);
+        tail = new ListNode(0, 0);
+        head->next = tail;
+        tail->prev = head;
+    }
+
+    ~LRUCache() {
+        for (auto& t : cache) {
+            delete t.second;
+        }
+    }
+
+    int get(int key) {
+        if(cache.find(key) == cache.end()) {
+            return -1;
+        }
+        ListNode* node = cache[key];
+        node->remove()->insert_before(tail);
+    }
+
+    void set(int key, int value) {
+        if(cache.find(key) != cache.end()) {
+            cache[key]->remove();
+        }
+        ListNode* node = new ListNode(key, value);
+        cache[key] = node;
+        node->insert_before(tail);
+        
+        if(cache.size() > capacity) {
+            ListNode* removed_node = head->next;
+            removed_node->remove();
+            cache.erase(removed_node->key);
+        }
+    }
+
+    void print() {
+        string result = "";
+        ListNode* node = head;
+        while(node != nullptr) {
+            cout << "(" << node->key << "," << node->value << "),";
+            node = node->next;
+        }
+        cout << endl;
+    }
+
+    unordered_map<int, ListNode*> cache;
+    ListNode* head;
+    ListNode* tail;
+    int capacity;
+};
+
+
+
+TEST_CASE("LRU Cache", "") {
+    LRUCache cache(5);
+    cache.set(10, 20);
+    // cache.print();
+    REQUIRE(cache.cache.size() == 1);
+    REQUIRE(cache.head->next->key == 10);
+    REQUIRE(cache.head->next->value == 20);
+    REQUIRE(cache.head->next == cache.tail->prev);
+    cache.set(15, 25);
+    // cache.print();
+    cache.set(20, 30);
+    // cache.print();
+    cache.set(25, 35);
+    // cache.print();
+    cache.get(15);
+    // cache.print();
+    REQUIRE(cache.cache.size() == 4);
+    REQUIRE(cache.tail->prev->key == 15);
+    REQUIRE(cache.tail->prev->value == 25);
+    cache.set(30, 40);
+    // cache.print();
+    cache.set(35, 45);
+    // cache.print();
+    cache.set(40, 50);
+    // cache.print();
+    REQUIRE(cache.cache.size() == 5);
+    REQUIRE(cache.tail->prev->key == 40);
+    REQUIRE(cache.tail->prev->value == 50);
+    REQUIRE(cache.head->next->key == 25);
+    REQUIRE(cache.head->next->value == 35);
+}
